@@ -1,10 +1,12 @@
 import '../scss/app.scss'
 import logo from '../assets/img/pizza-logo.svg'
 import PizzaBlock from '../components/PizzaBlock'
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import Categories from '../components/Categories/Categories'
 import { Skeleton } from '../components/PizzaBlock/Sceleton'
 import Sort from '../components/Sort/Sort'
+import { ThemeContext } from '../App'
+import Pagination from '../components/Pagination/Pagination'
 
 const sorts = [
 	{
@@ -40,10 +42,13 @@ const sorts = [
 ]
 
 function HomePage() {
+	const { isDarkMode, toggleTheme } = useContext(ThemeContext)
+	console.log(isDarkMode, 'fdsfsd')
 	const [data, setData] = useState(null)
 	const [curentCategory, setCurentCategory] = useState(1)
 	const [curentSort, setCurentSort] = useState(0)
 	const [loadings, setLoadings] = useState(false)
+	const [currentPage, setCurrentPage] = useState(1)
 	function onChangeCategory(id) {
 		setCurentCategory(id)
 	}
@@ -57,6 +62,8 @@ function HomePage() {
 		url.searchParams.append('category', curentCategory)
 		url.searchParams.append('sortBy', sortBy)
 		url.searchParams.append('order', order)
+		url.searchParams.append('page', currentPage)
+		url.searchParams.append('limit', 4)
 		const fetchData = async () => {
 			setLoadings(true)
 			try {
@@ -73,13 +80,18 @@ function HomePage() {
 			}
 		}
 		fetchData()
-	}, [curentCategory, curentSort])
+	}, [curentCategory, curentSort, currentPage])
 
 	const pizzas = data?.map(item => <PizzaBlock item={item} />)
 	const sceletons = [1, 2, 3, 4, 5, 6, 7, 8].map(item => <Skeleton />)
 
+	useEffect(() => {
+		document.body.style.background = isDarkMode
+			? 'linear-gradient(34deg, rgba(47, 86, 218, 1) 11%, rgba(22, 241, 190, 1) 82%)'
+			: ''
+	}, [isDarkMode])
 	return (
-		<div class='wrapper'>
+		<div style={isDarkMode ? { background: '#892be25c' } : {}} class='wrapper'>
 			<div class='header'>
 				<div class='container'>
 					<div class='header__logo'>
@@ -89,6 +101,7 @@ function HomePage() {
 							<p>самая вкусная пицца во вселенной</p>
 						</div>
 					</div>
+					<button onClick={() => toggleTheme()}>dark</button>
 					<div class='header__cart'>
 						<a href='/cart.html' class='button button--cart'>
 							<span>520 ₽</span>
@@ -142,6 +155,7 @@ function HomePage() {
 					</div>
 					<h2 class='content__title'>Все пиццы</h2>
 					<div class='content__items'>{!loadings ? pizzas : sceletons}</div>
+					<Pagination currentPage={currentPage} onPageChange={setCurrentPage} />
 				</div>
 			</div>
 		</div>
